@@ -1,4 +1,4 @@
-from dev This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+master from master  This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
 
