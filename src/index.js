@@ -6,6 +6,7 @@ import * as serviceWorker from './serviceWorker';
 import $ from 'jquery';// import $ from '//code.jquery.com/jquery-1.11.3.min.js';
 
 const crypto = require('crypto');
+  var id = 21;
 
 const users = {
   firstname:'jim',
@@ -86,8 +87,149 @@ function authorize(user, action) {
       `User ${user.name} is not authorized to do ${action}.`);
   }
 }
+function tag(arrayArr,...value){
+  console.log("arrayArr",arrayArr);
+  console.log("value",value);
+}
+
+function passthru(literals) {
+  let result = '';
+  let i = 0;
+
+  while (i < literals.length) {
+    console.log(`t${i}:` + literals[i]);
+    result += literals[i++];
+    if (i < arguments.length) {
+      result += arguments[i];
+      console.log(`a${i}:` + arguments[i]);
+    }
+  }
+  return result;
+}
+
+let total = 30;
+let msg = passthru`The total is ${total} ${total-1}${total*1.05} with tax)${total+1}`;
+console.log("msg",msg);
+
+function SaferHTML(templateData) {
+  console.log(`${typeof templateData} templateData:${templateData[1]}`);
+  let s = templateData[0];
+  console.log(`s1${s}`);
+  for (let i = 1; i < arguments.length; i++) {
+    let arg = String(arguments[i]);
+    console.log(`arg${i}:${arg}`);
+    // Escape special characters in the substitution.
+    s += arg.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    console.log(`s2${s}`);
+    // Don't escape special characters in the template.
+    s += templateData[i];
+    console.log(`s3${s}`);
+  }
+  return s;
+}
+
+let sender = '<script>alert("abc")</script>'; // 恶意代码
+// let message = SaferHTML`<p>${sender} has sent you a message.</p>`;
+var sf = String.raw`Hi\n${2+3}!`;
+// var sf = String.raw({ raw: 'test' }, 0, 1, 2);//`dfadfadfs\nsfdsdfsf\t`;
+console.log(`sf:${sf}`);
+
+
+// console.log(`message:${message}`);
+
+function compile(template){
+  const evalExpr = /<%=(.+?)%>/g;
+  const expr = /<%([\s\S]+?)%>/g;
+  console.log("11.11",template);
+  template = template
+    .replace(evalExpr, '`); \n  echo( $1 ); \n  echo(`')
+    .replace(expr, '`); \n $1 \n  echo(`');
+  console.log("22.22",template);
+  template = 'echo(`' + template + '`);';
+  console.log("33.33",template);
+  let script =
+  `(function parse(data){
+    let output = "";
+
+    function echo(html){
+      output += html;
+    }
+
+    ${ template }
+
+    return output;
+  })`;
+
+  return script;
+}
+/*返回字符串长度的函数 */
+function codePointLength(text) {
+  var result = text.match(/[\s\S]/gu);
+  return result ? result.length : 0;
+}
+
+var eat = (x,y) => {
+  console.log(`eat:${x+y}`);
+}
+function foo1  ()  {
+  // console.log(`this-foo1:${this}`);
+  setTimeout(() => {
+    console.log('foo1-id:', this.id);
+  }, 100);
+}
+
+function foo2() {
+// console.log(`foo2-id:${this.id}`);
+  setTimeout(function(){
+  console.log(`foo2-id:${this.id}`);
+},100)
+}
+
+function Timer() {
+  this.s1 = 0;
+  this.s2 = 0;
+  // 箭头函数
+  setInterval(() => this.s1++, 1000);
+  // 普通函数
+  setInterval(function () {
+    this.s2++;
+  }, 1000);
+}
+
+var name = 'laruence';
+function echo() {
+     console.log(`echo-name:${name}`);//(name);
+     var name = 'eve';
+     console.log(`echo-name2:${name}`);//(name);
+     // alert(age);
+}
+
+function drink(x,y){
+  console.log(`drink:${x-y}`);
+}
 
 function formatName(users){
+  var timer = new Timer();
+  setTimeout(()=>{console.log(`s1:${timer.s1}`)},3000);
+  setTimeout(()=>{console.log(`s2:${timer.s2}`)},3000);
+  // eat.call(drink,5,3);
+  // foo1.call({ id: "foo1-42" });
+  // var kjd = {id:100};
+  // // kjd.foo2();
+  // foo2.call({id: "foo2-71"});
+  echo();
+  if (0b111110111 === 503 ) {
+    console.log("o0O");
+    console.log(`isfinite:${Number.isFinite(1/3)}`);
+    console.log(`max:${Number.MAX_SAFE_INTEGER}\nJINGDU:${Number.EPSILON}`);
+    var x = -1;
+    x = +x
+    console.log(`x:${Math.sign(-0)}`);
+    console.log(`log:${1 << 29}`);
+  }
+  console.log(`16.42:${/^\S$/u.test('昂')}`);
   let codep = "h李b!";
   console.log(typeof $);
   // var locon = $('[className^="hello"]');
@@ -233,6 +375,171 @@ function formatName(users){
     return users.firstname+' '+users.lastname;
 }
 
+/*
+*** arguments 的使用 start
+ */
+// function repeat(fn, times, delay) {
+//   return function() {
+//     if(times-- > 0) {
+//       fn.apply(null, arguments);
+//       var args = Array.prototype.slice.call(arguments);
+//       var self = arguments.callee;
+//       setTimeout(function(){self.apply(null,args)}, delay);
+//     }
+//   };
+// }
+function format(string) {
+  var args = arguments;
+  console.log("format:",args);
+  console.log("string",string);
+  var pattern = new RegExp("%([1-" + arguments.length + "])", "g");
+  return String(string).replace(pattern, function(match, index) {
+    console.log("match:",match+" index:" + index);
+    return args[index];
+  });
+};
+function makeFunc() {
+  var args = Array.prototype.slice.call(arguments);
+  // console.log("makefunc-args:",args);
+  var func = args.shift();
+  // console.log("func:",func);
+  var lasts = args[args.length-1];
+  // console.log("lastd:",lasts);
+  // console.log( args.concat(Array.prototype.slice.call(arguments)));
+  return function() {
+    return func.apply(null, args.concat(Array.prototype.slice.call(arguments)));
+  };
+}
+/* arguments 的使用 end */
+function Person(name,age){
+  this.name = name;
+  this.age = age;
+}
+Person.prototype.sayHello = function(){
+  console.log(`${this.name} say Hello!`);
+}
+// 尾调优化
+function tco(f) {
+  var value;
+  var active = false;
+  var accumulated = [];
+
+  return function accumulator() {
+    console.log("toc-arg:",arguments);
+    accumulated.push(arguments);
+    console.log("acc:",accumulated[0]);
+    if (!active) {
+      active = true;
+      while (accumulated.length) {
+        value = f.apply(this, accumulated.shift());
+      }
+      active = false;
+      return value;
+    }
+  };
+}
+
+function typeOf(){
+    return Array.from(arguments, (x) => typeof x);
+}
+
+var doSomething = function(){
+
+}
+function formatName1(){
+  // console.log("12.13:",typeOf(undefined,NaN,"1",2,null,[]));
+  console.log("777:",[1, 2, 3, 4, 5].copyWithin(0, -3, -2));
+  console.log("888:",[NaN].findIndex(y => Object.is(NaN, y)));
+  for(let [indexK,elem] of ["a","b"].entries() ){
+    console.log(indexK,elem);
+  }
+  console.log("11,11",[1,2,3,4].includes(4,3));
+  console.log("00.00",...[,"c"]);
+  console.log("22,22",[...[,'a'].entries()] );//扩展运算符（...）也会将空位转为undefined。
+  console.log("33.33",[,"b"].entries() );
+  // Object.getOwnPropertyDescripter()
+  console.log("函数：",doSomething.bind().name);
+  console.log("name",(new Function()).name);
+  const key1 = Symbol('description');
+  const key2 = Symbol();
+  let obj1 = {
+    [key1]() {},
+    [key2]() {},
+  };
+  console.log("symbol:",obj1[key1].name); // "[description]"
+  console.log("name:",obj1[key2].name);// ""
+  console.log("遍历：",Reflect.ownKeys({ [Symbol()]:0, b:0, 10:0, 2:0, a:0 ,1:7 ,c:2 ,3:4}));
+  console.log("key:",Object.keys( { [Symbol()]:0, b:0, 10:0, 2:0, a:0 ,1:7 ,c:2 ,3:4} ));
+  let {m,n,...b} = {m:1,n:2,c:3,d:4,e:5};
+  let { x, y, ...z } = { x: 1, y: 2, a: 3, b: 4 };
+  console.log("b",b);
+  console.log("z", {...1});
+  console.log( "v:",{..."liby"});
+  // console.log("sd",...[1,2,3]);
+  // const a1 = [1, 2];
+  // const [...a2] = a1;
+  // a2[0] = 2;
+  // console.log("a1:",a1);
+  // let str = 'x\uD83D\uDE80y';
+  // console.log("11.11:",[...str].reverse().join(''));//扩展运算符使reverse结果准确
+  // console.log("11.12:",str.split('').reverse().join(''));//错误的结果
+  // // 定义了Number对象的遍历器接口，扩展运算符将5自动转成Number实例以后，就会调用这个接口，就会返回自定义的结果。
+  // Number.prototype[Symbol.iterator] = function*() {
+  //   let i = 0;
+  //   let num = this.valueOf();
+  //   while (i < num) {
+  //     yield i++;
+  //   }
+  // }
+  // console.log("11.13:",[...5]);
+  // var sum = tco(function(x, y) {
+  //   if (y > 0) {
+  //     return sum(x + 1, y - 1)
+  //   }
+  //   else {
+  //     return x
+  //   }
+  // });
+  // var allt = sum(1, 10);
+  // console.log("allt",allt);
+
+  // var boy = new Person("liby",24);
+  // console.log(`boy:${boy.name}`);
+  // console.log(boy.constructor === Person);
+  // console.log(boy.constructor);
+  // var person1 = new Person("za",12);
+  // var person2 = new person1.constructor();
+  // console.log(person2 instanceof Person); //true
+  // console.log(boy.__proto__ === Person.prototype);//true
+  // console.log(Person.prototype);
+  // console.log(boy.__proto__.constructor === Person.prototype.constructor);//true
+  // console.log(boy.__proto__.constructor);
+  // console.log("/////////////////");
+  // console.log(Person.prototype.__proto__ === Object.prototype);//true
+  // console.log(Object.prototype);//{}
+  // console.log(Object.prototype.__proto__); //null
+
+  // var func = makeFunc(format, "I like %1 not %2.");
+  // var s1 = func("js", "python");
+  // console.log("s1：",s1);
+  // var somethingWrong = repeat(function(s){console.log(s)}, 3, 2000);
+  // somethingWrong("Can you hear me, major tom?");
+
+  return "funs";
+  // console.log(arguments[0].firstname);
+  // console.log(arguments[Symbol.iterator]);
+  // var sjdj = arguments[Symbol.iterator]();
+  // console.log(sjdj.next());
+  // console.log(sjdj.next());
+  //
+  // var users1 = Array.prototype.slice.call(arguments);
+  // var args = toString(users1[0]);
+  // console.log(`JSON args:${args}`);
+  // console.log(users1);
+  // console.log(`users1 type:${typeof users1}`);
+  // console.log(Object.prototype.toString.call(users1));
+  // console.log(Array.isArray(users1));
+}
 // const element2 = <h2>bye {formatName(users)}</h2>;
 
 
@@ -250,14 +557,30 @@ const data = [
     { first: '<Jane>', last: 'Bond' },
     { first: 'Lars', last: '<Croft>' },
 ];
-
+let a = 5;
+let b = 10;
+tag`Hello ${a+b} world ${a*b}`;
 // console.log(tmpl(data));
 $('#loco').append(
   `${tmpl(data)}`
 )
+//
+let template = `
+<ul>
+  <% for(let i=0; i < data.supplies.length; i++) { %>
+    <li><%= data.supplies[i] %></li>
+  <% } %>
+</ul>
+`;
+var parse = eval(compile(template));
+
+console.log(`87.08:${codePointLength('李不出这也就是')}`);
+console.log(parse({ supplies: [ "broom", "mop", "cleaner" ] }));
+console.log(`huned:${/\d+(?=%)/.exec('100% of US presidents have been male') }`);
+console.log(`fourty:${/\d+(?!%)/.exec('that’s all 44 of them')}`);
 const element = (
   <span id = "loco">
-    <h1 className="hello">Hello, {formatName(users)}</h1>
+    <h1 className="hello">Hello, {formatName1(users)}</h1>
   </span>
 )
 ReactDOM.render(
