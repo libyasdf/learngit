@@ -470,7 +470,7 @@ function formatName1(){
   console.log("name:",obj1[key2].name);// ""
   console.log("遍历：",Reflect.ownKeys({ [Symbol()]:0, b:0, 10:0, 2:0, a:0 ,1:7 ,c:2 ,3:4}));
   console.log("key:",Object.keys( { [Symbol()]:0, b:0, 10:0, 2:0, a:0 ,1:7 ,c:2 ,3:4} ));
-  // branch master
+  // branch merge --no-ff
   let {m,n,...b} = {m:1,n:2,c:3,d:4,e:5};
   let { x, y, ...z } = { x: 1, y: 2, a: 3, b: 4 };
   console.log("b",b);
