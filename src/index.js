@@ -4,6 +4,7 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import $ from 'jquery';// import $ from '//code.jquery.com/jquery-1.11.3.min.js';
+import 'babel-polyfill';
 
 const crypto = require('crypto');
   var id = 21;
@@ -471,14 +472,75 @@ function formatName1(){
   console.log("遍历：",Reflect.ownKeys({ [Symbol()]:0, b:0, 10:0, 2:0, a:0 ,1:7 ,c:2 ,3:4}));
   console.log("key:",Object.keys( { [Symbol()]:0, b:0, 10:0, 2:0, a:0 ,1:7 ,c:2 ,3:4} ));
 
-  // working not until done
+  // working feature1
 
   let {m,n,...b} = {m:1,n:2,c:3,d:4,e:5};
   let { x, y, ...z } = { x: 1, y: 2, a: 3, b: 4 };
   console.log("b",b);
   console.log("z", {...1});
   console.log( "v:",{..."liby"});
+  const obj2 = {
+    foo: 123,
+    get bar() {return 'abc' }
+  }
 
+  console.log(Object.getOwnPropertyDescriptors(obj2));
+  console.log(Object.getOwnPropertyDescriptor(obj2,'foo'));
+  console.log(Object.getPrototypeOf(1) === Number.prototype);
+
+  console.log(Object.keys(obj2));
+  console.log(Object.values(obj2));
+
+  const obj3 = Object.create({}, {p: {value: 42,enumerable:true}});//Object.values只返回对象自身的可遍历属性。
+  // 第二个参数添加的对象属性（属性p），如果不显式声明，默认是不可遍历的，因为p的属性描述对象的enumerable默认是false，
+  // Object.values不会返回这个属性。只要把enumerable改成true，Object.values就会返回属性p的值。
+  console.log("enumerable:",Object.values(obj3));
+  console.log(Object.values({[Symbol()]:123,foo:"abc"}));//Object.values会过滤属性名为 Symbol 值的属性。
+
+  console.log(Object.values("foo"));
+  let obj5 = { one: 1, two: 2 };
+  for (let [k, v] of Object.entries(obj5)) {
+    console.log(
+      `${JSON.stringify(k)}: ${JSON.stringify(v)}`
+    );
+  }
+  const map = new Map(Object.entries(obj5));
+  console.log("obj5:",map);
+
+  const map1 = new Map().set('foo', true).set('bar', false);
+  console.log("map1",map1);
+
+  // Object.fromEntries(new URLSearchParams('foo=bar&baz=qux'));//undefined
+  let sym1 = Symbol("liby");
+  console.log("Symbol:",sym1);
+  console.log(sym1.toString());
+  console.log(String(sym1));
+
+  const log = {};
+
+  log.levels = {
+    DEBUG: Symbol('debug'),
+    INFO: Symbol('info'),
+    WARN: Symbol('warn')
+  };
+  console.log(log.levels.DEBUG, 'debug message');
+  console.log(log.levels.INFO, 'info message');
+
+  const obj6 = {};
+  let a1 = Symbol('a');
+  let b1 = Symbol('b');
+
+  obj6[a1] = "hello a!";
+  obj6[b1] = "Hello b!";
+
+  Object.defineProperty(obj6,a1,{value:"foobar"});
+
+  const objectSymbol = Object.getOwnPropertySymbols(obj6);
+  console.log(objectSymbol);
+  Reflect.ownKeys();
+// { foo: "bar", baz: "qux" }
+  // Object.fromEntries(map1)
+  // Object.defineProperties()
   // console.log("sd",...[1,2,3]);
   // const a1 = [1, 2];
   // const [...a2] = a1;
