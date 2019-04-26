@@ -537,8 +537,116 @@ function formatName1(){
 
   const objectSymbol = Object.getOwnPropertySymbols(obj6);
   console.log(objectSymbol);
-  Reflect.ownKeys();
-// { foo: "bar", baz: "qux" }
+  // Reflect.ownKeys();
+  let ds1 = Symbol.for("libya");
+  let ds2 = Symbol.for("libya");
+  console.log("de1:",ds1 === ds2);
+  console.log("key:",Symbol.keyFor(ds1));
+
+  let arr1 = ["a","b"];
+  arr1[Symbol.isConcatSpreadable] = false;
+  console.log("array:",["c","d"].concat(arr1,"b"));
+
+  let sameObj = {0:"a", 1:"sda", length:2};
+  sameObj[Symbol.isConcatSpreadable] = true;
+  console.log("spreadable:",["a","b"].concat(sameObj,"e"));
+
+  class MyArray extends Array{
+    static get [Symbol.species](){ return Array; }
+  }
+  const a11 = new MyArray();
+  const b11 = a11.map( x => x );
+
+  console.log("MyArray:",b11 instanceof MyArray );
+  console.log("Array:",b11 instanceof Array );
+
+  class MyMatcher {
+    [Symbol.match](string){
+      return "hlloe world!".indexOf(string);
+    }
+  }
+  console.log("match:",'e'.match(new MyMatcher()));;
+
+  const x11 = {};
+  x11[Symbol.replace] = (...s) => console.log(s);
+  console.log("replace:",'Hello'.replace(x11, 'World') ); // ["Hello", "World"]
+
+  class MySearch {
+    constructor(value) {
+      this.value = value;
+    }
+    [Symbol.search](string) {
+      return string.indexOf(this.value);
+    }
+  }
+  console.log("search:",'foobar'.search(new MySearch('bar')) );// 0
+
+
+  const myIterable = {};
+  myIterable[Symbol.iterator] = function*(){
+    yield 1;
+    yield 2;
+    yield 3;
+
+  };
+  console.log("iterator:",[...myIterable]);
+
+  class MySplite {
+    constructor(value){
+      this.value = value;
+    }
+    [Symbol.split](string){
+      let index = string.indexOf(this.value);
+      if(index === -1){
+        return string;
+      }
+      return [
+        string.substr(0,index),
+        string.substr(index + this.value.length)
+      ]
+    }
+  }
+
+  console.log("split:","foobar".split(new MySplite('foo')) );
+
+  let obj7 = {
+    [Symbol.toPrimitive](hint){
+      switch (hint){
+        case 'number':
+          return 100;
+        case 'string':
+          return 'liby';
+        case 'default':
+          return 'default';
+        default:
+          throw new Error();
+      }
+    }
+  };
+
+  console.log("number:",1 * obj7);
+  console.log("string:",1 + obj7);
+  console.log("default:",obj7 == 'default');
+  console.log("````",String(obj7));
+
+  class Collection{
+    get [Symbol.toStringTag](){
+      return '$$$';
+    }
+  }
+  let coll = new Collection();
+  console.log("toStringTag:",Object.prototype.toString.call(coll));
+  console.log(":",JSON.toString(coll) );
+
+  const s = new Set();
+  [2,3,4,2,3,2,3,7,4].forEach(x=>s.add(x));
+  console.log("result:",s);
+
+  const set = new Set(document.querySelectorAll('div'));
+  console.log("set.size:",set); // 56
+  console.log([...set]);
+  console.log(document.querySelectorAll('div'));
+  // { foo: "bar", baz: "qux" }
   // Object.fromEntries(map1)
   // Object.defineProperties()
   // console.log("sd",...[1,2,3]);
