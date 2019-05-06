@@ -646,6 +646,210 @@ function formatName1(){
   console.log("set.size:",set); // 56
   console.log([...set]);
   console.log(document.querySelectorAll('div'));
+
+  //   作者：Fundebug
+  // 链接：https://www.zhihu.com/question/22855484/answer/657320514
+  // 来源：知乎
+  // 著作权归作者所有，转载请联系作者获得授权。
+
+  function addMethod(object, name, f) {　　
+      var old = object[name];
+      console.log("obj:>>",object);
+      object[name] = function() {
+          // f.length为函数定义时的参数个数
+          // arguments.length为函数调用时的参数个数　　　　
+          if (f.length === arguments.length) {　　
+              return f.apply(this, arguments);　　　　
+          } else if (typeof old === "function"){
+              return old.apply(this, arguments);　　　　
+          }　　
+      };
+  }
+
+
+// 不传参数时，返回所有name
+function find0() {　　
+    return this.names;
+}
+
+
+// 传一个参数时，返回firstName匹配的name
+function find1(firstName) {　　
+    var result = [];　　
+    for (var i = 0; i < this.names.length; i++)
+    {　　　　
+        if (this.names[i].indexOf(firstName) === 0)
+        {　　　　　　
+            result.push(this.names[i]);　　　　
+        }　　
+    }　　
+    return result;
+}
+
+
+// 传两个参数时，返回firstName和lastName都匹配的name
+function find2(firstName, lastName) {　
+    var result = [];　　
+    for (var i = 0; i < this.names.length; i++)
+    {　　　　
+        if (this.names[i] === (firstName + " " + lastName))
+        {　　　　　　
+            result.push(this.names[i]);　　　　
+        }　　
+    }　　
+    return result;
+}
+
+
+var people = {　　
+    names: ["Dean Edwards", "Alex Russell", "Dean Tom"]
+};
+
+
+addMethod(people, "find", find0);
+addMethod(people, "find", find1);
+addMethod(people, "find", find2);
+
+
+console.log(people.find()); // 输出["Dean Edwards", "Alex Russell", "Dean Tom"]
+console.log(people.find("Dean")); // 输出["Dean Edwards", "Dean Tom"]
+console.log(people.find("Dean", "Edwards")); // 输出["Dean Edwards"]
+
+  let set01 = new Set([1,4,6,8]);
+  set01.forEach( (value,key) => console.log(key + "" + value) );
+
+  let set02 = new Set(['red','green','gray']);
+  let arr2 = [...set02];
+  console.log("arr2",arr2);
+
+  let arr3 = [2,2,3,4,3,5,6,5,8];
+  let uniq = [...new Set(arr3)];
+  console.log("uniq:",uniq);
+
+  let aa = new Set([1,2,3]);
+  let bb = new Set([3,4,2]);
+
+  let union = new Set([...aa,...bb]);
+  let intersect = new Set([...aa].filter((x) => {bb.has(x)}));
+  // let difference = new Set([...aa].filter((x) => {!bb.has(x)}));
+  let difference = new Set([...aa].filter((x) => (!bb.has(x))));
+  console.log("union",union);
+
+  // const ws = new WeakSet();
+  const aaa = [[1, 2], [3, 4],[1,2]];
+  const ws = new WeakSet(aaa);
+  console.log("ws:",ws);
+
+  const bbb = [[1],[2]];
+  const wsws = new WeakSet(bbb);
+  console.log("wsws:",wsws);
+
+  const mapm = new Map([
+    ['liby','账单'],
+    ['title','author']
+  ])
+  console.log("map.size:",mapm.size);
+  console.log("map.has:",mapm.has('liby'));
+  console.log("map.title:",mapm.get('title'));
+
+  const myMap = new Map()
+  .set(true,1)
+  .set({'foo':1},['liby', 2]);
+  console.log("map set:",[...myMap]);
+
+  let testMap = new Map([
+    [true,1],
+    [{'foo':1},['liby',2]]
+  ]);
+  console.log("testMap:",testMap);
+  console.log("testMap []",[...testMap]);
+
+  function changeObj(mapObj){
+    let obj = Object.create(null);
+    for (let [k,v] of mapObj) {
+      obj[k] = v;
+    }
+    return obj;
+  }
+  console.log("object map:",changeObj(testMap));
+
+  // proxy
+  var objproxy = new Proxy ({}, {
+    get : function(target, key, receiver ){
+      console.log(`getting ${key} !`);
+      return Reflect.get(target, key, receiver);
+    },
+    set : function(target, key, value, receiver){
+      console.log(`setting ${key} !`);
+      return Reflect.set(target, key, value, receiver);
+    }
+  });
+  objproxy.count = 1;
+  ++objproxy.count;
+  console.log(objproxy.count);
+
+  var proxy = new Proxy({},{
+    get : function(target, property){
+      return 35;
+    }
+  });
+
+  console.log("proxy.time",proxy.time);
+// 拦截器函数，可以设置拦截多个操作。
+  var handler = {
+  get: function(target, name) {
+    if (name === 'prototype') {
+      return Object.prototype;
+    }
+    return 'Hello, ' + name;
+  },
+
+  apply: function(target, thisBinding, args) {
+    console.log("apply:",target);
+    console.log("binding:",thisBinding);
+    return args[0];
+  },
+
+  construct: function(target, args) {
+      console.log("construct:",target);
+      return {value: args[1]};
+    }
+  };
+
+  var fproxy = new Proxy(function(x, y) {
+    return x + y;
+  }, handler);
+
+  fproxy(1, 2) // 1
+  new fproxy(1, 2) // {value: 2}
+  if (proxy.prototype === Object.prototype) {
+    console.log("prototype true");
+  } // true
+  if (fproxy.foo === "Hello, foo" ) {
+    console.log("foo true");
+  }
+  var person = {
+    name: "张三"
+  };
+
+  var proxyg = new Proxy(person, {
+    get: function(target, property) {
+      console.log(target);
+      console.log(property);
+      if (property in target) {
+        return target[property];
+      } else {
+        throw new ReferenceError("Property \"" + property + "\" does not exist.");
+      }
+    }
+  });
+  console.log("proxy.name:",proxyg.name); // "张三"
+  let testC = Object.create(proxyg);
+  console.log("testC.name:",testC.name);//get方法可以继承。
+  
+  // console.log("proxy.age:",proxyg.age); // 抛出一个错误
+
+
   // { foo: "bar", baz: "qux" }
   // Object.fromEntries(map1)
   // Object.defineProperties()
