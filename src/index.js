@@ -774,81 +774,257 @@ console.log(people.find("Dean", "Edwards")); // 输出["Dean Edwards"]
   console.log("object map:",changeObj(testMap));
 
   // proxy
-  var objproxy = new Proxy ({}, {
-    get : function(target, key, receiver ){
-      console.log(`getting ${key} !`);
-      return Reflect.get(target, key, receiver);
-    },
-    set : function(target, key, value, receiver){
-      console.log(`setting ${key} !`);
-      return Reflect.set(target, key, value, receiver);
-    }
-  });
-  objproxy.count = 1;
-  ++objproxy.count;
-  console.log(objproxy.count);
-
-  var proxy = new Proxy({},{
-    get : function(target, property){
-      return 35;
-    }
-  });
-
-  console.log("proxy.time",proxy.time);
+  // var objproxy = new Proxy ({}, {
+  //   get : function(target, key, receiver ){
+  //     console.log(`getting ${key} !`);
+  //     return Reflect.get(target, key, receiver);
+  //   },
+  //   set : function(target, key, value, receiver){
+  //     console.log(`setting ${key} !`);
+  //     return Reflect.set(target, key, value, receiver);
+  //   }
+  // });
+  // objproxy.count = 1;
+  // ++objproxy.count;
+  // console.log(objproxy.count);
+  //
+  // var proxy = new Proxy({},{
+  //   get : function(target, property){
+  //     return 35;
+  //   }
+  // });
+  //
+  // console.log("proxy.time",proxy.time);
 // 拦截器函数，可以设置拦截多个操作。
-  var handler = {
-  get: function(target, name) {
-    if (name === 'prototype') {
-      return Object.prototype;
+  // var handler = {
+  // get: function(target, name) {
+  //   if (name === 'prototype') {
+  //     return Object.prototype;
+  //   }
+  //   return 'Hello, ' + name;
+  // },
+  //
+  // apply: function(target, thisBinding, args) {
+  //   console.log("apply:",target);
+  //   console.log("binding:",thisBinding);
+  //   return args[0];
+  // },
+  //
+  // construct: function(target, args) {
+  //     console.log("construct:",target);
+  //     return {value: args[1]};
+  //   }
+  // };
+  //
+  // var fproxy = new Proxy(function(x, y) {
+  //   return x + y;
+  // }, handler);
+  //
+  // fproxy(1, 2) // 1
+  // new fproxy(1, 2) // {value: 2}
+  // if (proxy.prototype === Object.prototype) {
+  //   console.log("prototype true");
+  // } // true
+  // if (fproxy.foo === "Hello, foo" ) {
+  //   console.log("foo true");
+  // }
+  // var person = {
+  //   name: "张三"
+  // };
+  //
+  // var proxyg = new Proxy(person, {
+  //   get: function(target, property) {
+  //     console.log(target);
+  //     console.log(property);
+  //     if (property in target) {
+  //       return target[property];
+  //     } else {
+  //       throw new ReferenceError("Property \"" + property + "\" does not exist.");
+  //     }
+  //   }
+  // });
+  // console.log("proxy.name:",proxyg.name); // "张三"
+  // let testC = Object.create(proxyg);
+  // console.log("testC.name:",testC.name);//get方法可以继承。
+  //
+  // // console.log("proxy.age:",proxyg.age); // 抛出一个错误
+  //
+  // var nx = 36;
+  // var np = nx.toString().split("").reverse().join("");
+  // console.log("np:",np);
+  // 链式操作
+  var double = n => n * 2;
+  var pow    = n => n * n;
+  var reverseInt = n => n.toString().split("").reverse().join("") | 0;
+
+  var pipe = (function () {
+    return function (value) {
+      var funcStack = [];
+      var oproxy = new Proxy({} , {
+        get : function (pipeObject, fnName) {
+          if (fnName === 'get') {
+            return funcStack.reduce(function (val, fn) {
+              return eval(fn + "(val);");//将string的方法名，转为函数执行
+            },value);
+          }
+          funcStack.push(fnName);
+          return oproxy;
+        }
+      });
+      return oproxy;
     }
-    return 'Hello, ' + name;
-  },
+  }());
 
-  apply: function(target, thisBinding, args) {
-    console.log("apply:",target);
-    console.log("binding:",thisBinding);
-    return args[0];
-  },
-
-  construct: function(target, args) {
-      console.log("construct:",target);
-      return {value: args[1]};
-    }
-  };
-
-  var fproxy = new Proxy(function(x, y) {
-    return x + y;
-  }, handler);
-
-  fproxy(1, 2) // 1
-  new fproxy(1, 2) // {value: 2}
-  if (proxy.prototype === Object.prototype) {
-    console.log("prototype true");
-  } // true
-  if (fproxy.foo === "Hello, foo" ) {
-    console.log("foo true");
-  }
-  var person = {
-    name: "张三"
-  };
-
-  var proxyg = new Proxy(person, {
-    get: function(target, property) {
-      console.log(target);
-      console.log(property);
-      if (property in target) {
-        return target[property];
-      } else {
-        throw new ReferenceError("Property \"" + property + "\" does not exist.");
+  console.log("link:",pipe(3).double.pow.reverseInt.get); // 63
+  // 利用get拦截，实现一个生成各种 DOM 节点的通用函数dom。#01复习proxy，没怎么懂
+  const dom = new Proxy({}, {
+    get(target, property) {
+      console.log("11property:",property);//property 里面存的是标签il、ul、div、a
+      return function(attrs = {}, ...children) {//[...children] 数组标签和数据
+        const el = document.createElement(property);
+        console.log("11children:",[...children]);
+        // attrs: – {href: "//example.com"}
+        for (let prop of Object.keys(attrs)) {
+          //Object.keys(attrs) : ["href"]
+          //el : <a href="//example.com">Mark</a>
+          //prop : "href"
+          //attrs[prop] : "//example.com"
+          el.setAttribute(prop, attrs[prop]);
+        }
+        console.log("children",children);
+        for (let child of children) {
+          console.log("child:",child);
+          if (typeof child === 'string') {
+            child = document.createTextNode(child);
+          }
+          el.appendChild(child);
+        }
+        return el;
       }
     }
   });
-  console.log("proxy.name:",proxyg.name); // "张三"
-  let testC = Object.create(proxyg);
-  console.log("testC.name:",testC.name);//get方法可以继承。
-  
-  // console.log("proxy.age:",proxyg.age); // 抛出一个错误
 
+  const el = dom.div({},
+      'Hello, my name is ',
+      dom.a({href: '//example.com'}, 'Mark'),
+      '. I like:',
+      dom.ul({},
+      dom.li({}, 'The web'),
+      dom.li({}, 'Food'),
+      dom.li({}, '…actually that\'s it')
+    )
+  );
+  console.log("getreceiver",dom.getReceiver === dom);
+  document.body.appendChild(el);
+
+  const d = Object.create(dom);
+  console.log("fjadfdsf:",d.a);
+
+  // set（）
+  let validator = {
+    set : function (obj , prop, value ) {
+      if (prop === "age") {
+        if (!Number.isInteger(value) ) {
+          throw new TypeError("The age is not an integer");
+        }
+        if (value > 200) {
+          throw new RangeError("The age seems invalid");
+        }
+      }
+      obj[prop] = value;
+    }
+  };
+  let personset = new Proxy({},validator);
+  personset.age = 100;
+  console.log("set ",personset.age);
+  /*set() */
+  function invariant(key,action){
+    if (key[0] === "_") {
+      throw new Error("canot change!");
+    }
+  }
+  const handler = {
+    get : function(target,key){
+      invariant(key,"get");
+      return true;
+    },
+    set : function(target,key,value){
+      invariant(key,"set");
+      target[key] = value;
+      return target;
+    }
+  }
+  const proxysett = new Proxy({} , handler);
+  // proxysett._prop = "test";
+
+  const targetes = {
+    m: function () {
+      console.log(this);
+      console.log("thisL:",this === proxyes);
+      }
+  };
+  const handleres = {};
+  const proxyes = new Proxy(targetes, handleres);
+  targetes.m() // false
+  proxyes.m()  // true
+//
+  const targeted = new Date('2015-01-01');
+  const handlered = {
+    get(targeted, prop) {
+      if (prop === 'getDate') {
+        return targeted.getDate.bind(targeted);
+      }
+      return Reflect.get(targeted, prop);
+    }
+  };
+  const proxyed = new Proxy(targeted, handlered);
+
+  console.log( "getdata:",proxyed.getDate()  );// 1
+
+  var myObject = {
+    foo: 1,
+    bar: 2,
+    get baz() {
+      return this.foo + this.bar;
+    },
+  };
+
+  var myReceiverObject = {
+    foo: 4,
+    bar: 4,
+  };
+
+  console.log("Reflect get:",Reflect.get(myObject, 'baz', myReceiverObject) ); // 8
+
+  const ages = [11, 33, 12, 54, 18, 96];
+
+  // 旧写法
+  const youngest = Reflect.apply(Math.min, Math, ages);
+  const oldest = Reflect.apply(Math.max, Math, ages);
+  const type = Reflect.apply(Object.prototype.toString, youngest, []);
+
+  console.log("string:",type);
+
+  const queuedObservers = new Set();
+  const observe = fn => queuedObservers.add(fn);
+
+  function seter(target, key, value, receiver) {
+    const result = Reflect.set(target, key, value, receiver);
+    queuedObservers.forEach(observer => observer());
+    return result;
+  }
+  const observable = obj => new Proxy(obj, {seter});
+  const personer = observable({
+    name: '张三',
+    age: 20
+  });
+
+  function print() {
+    console.log(`${personer.name}, ${personer.age}`)
+  }
+
+  observe(print);
+  personer.name = "赵四";
 
   // { foo: "bar", baz: "qux" }
   // Object.fromEntries(map1)
